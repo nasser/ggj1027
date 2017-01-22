@@ -3,7 +3,15 @@
         arcadia.linear)
   (:require [game.ragdoll :as ragdoll]
             [game.replay :as replay])
-  (:import [UnityEngine Mathf Camera Animator Input Physics Rigidbody Vector3]))
+  (:import [UnityEngine Time AudioSource Mathf Camera Animator Input Physics Rigidbody Vector3 GUIText]))
+
+(defn windup-sound [obj]
+  (let [as (.. obj (GetComponent AudioSource))]
+    (when (and (Input/GetKey "f")
+               (not (.isPlaying as)))
+      (.Play as))
+    (when-not (Input/GetKey "f")
+      (.Stop as))))
 
 (defn windup-effect [wind-up]
   (if wind-up
@@ -15,9 +23,29 @@
                         60.0
                         0.5)))))
 
+(def player-state (atom {:started-timer false
+                         :timer 15}))
+
+(defn render-gui [player]
+  (when (:started-timer @player-state)
+    (set! (.text (cmpt (object-named "GUI") GUIText))
+          (str (int (:timer @player-state)) "s\n"
+               (int (* 100 (/ (count (remove #(.enabled %) (objects-typed Animator)))
+                              (count (objects-typed Animator))))) "%"))
+    (swap! player-state update :timer - Time/deltaTime)
+    (when (<= (:timer @player-state) 0)
+      (swap! player-state assoc :started-timer false)
+      (replay/stop-recording-all)
+      (replay/playback!
+        (replay/digest replay/recording)
+        @replay/moments-of-interest
+        0.1))))
+
 (defn punch-nazis [player]
   (windup-effect (Input/GetKey "f"))
   (when (Input/GetKeyUp "f")
+    (swap! player-state assoc :started-timer true)
+    (replay/start-recording-all replay/recording)
     (let [colliders (Physics/OverlapSphere
                       (.. player transform position)
                       10)
@@ -50,7 +78,9 @@
 
 (comment
   (require 'game.player :reload)
+  (hook+ Selection/activeObject :update #'windup-sound)
   (hook+ Selection/activeObject :update #'punch-nazis)
+  (hook+ Selection/activeObject :update #'render-gui)
   (make-cubes)
   
   ;; falling cubes

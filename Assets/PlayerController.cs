@@ -23,7 +23,7 @@ public class PlayerController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (Input.GetKeyDown (KeyCode.F)) {
+		if (Input.GetKeyUp (KeyCode.F)) {
 			Collider[] nearbyColliders = Physics.OverlapSphere (transform.position, forceRadius);
 			for (int i = 0; i < nearbyColliders.Length; i++) {
 				Rigidbody r = nearbyColliders [i].GetComponent<Rigidbody> ();

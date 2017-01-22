@@ -7,6 +7,7 @@
 
 (defn sticky [go other]
   (when (= "Hips_jnt" (.name other))
+    (replay/register-moment (.. other transform position))
     (let [other-root (.. other transform root)
           other-rb (.GetComponent other Rigidbody)
           other-rbs (.GetComponentsInChildren other-root Rigidbody)]

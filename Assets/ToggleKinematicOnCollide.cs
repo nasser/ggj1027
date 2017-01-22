@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using clojure.lang;
 
 public class ToggleKinematicOnCollide : MonoBehaviour {
 
@@ -16,6 +17,7 @@ public class ToggleKinematicOnCollide : MonoBehaviour {
 	}
 
 	void OnCollisionEnter(Collision collision) {
+		RT.var("game.replay", "register-moment").invoke(transform.position);
 		// if (collision.transform.root.gameObject.GetComponent<PersonController> ().hasBeenHit) {
 			if (rb.isKinematic) {
 				rb.isKinematic = false;

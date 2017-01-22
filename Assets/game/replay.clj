@@ -2,8 +2,8 @@
   (:use arcadia.core
         arcadia.linear)
   (:import Snapshots Snapshot
-           [UnityEngine GameObject Input Physics 
-            Rigidbody Collider Time Joint
+           [UnityEngine Application GUILayer GUIText Animator AudioListener GameObject
+            Input Physics Camera Rigidbody Collider Time Joint
             Vector3 Quaternion]))
 
 (def moments-of-interest (atom {}))
@@ -18,7 +18,7 @@
 
 (defn snapshot [^GameObject obj ^Snapshots record initial-frame]
   (.Push record
-         (- Time/frameCount initial-frame)
+         Time/frameCount
          obj
          (.. obj transform localPosition)
          (.. obj transform localRotation)))
@@ -82,11 +82,21 @@
 (defn seek% [record pct]
   (seek record (int (* pct (count record)))))
 
-(defn playback! [record speed]
-  (let [playback-object (GameObject. (str (gensym "playback")))
+(defn playback! [record moi speed]
+  (let [playback-camera (GameObject. "playback camera")
+        birds-eye (v3 -203.02 16.81 -210.64)
+        playback-object (GameObject. (str (gensym "playback")))
         frames (vals record)
+        first-frame (apply min (keys record))
+        last-frame (apply max (keys record))
         f (volatile! (apply min (keys record)))
-        last-frame (apply max (keys record))]
+        gui (cmpt (object-named "GUI") GUIText)]
+    (.SetActive (object-named "FPSController") false)
+    (set! (.. playback-camera transform position) birds-eye)
+    (.. playback-camera transform (LookAt (.transform (object-named "road_Roundabout"))))
+    (cmpt+ playback-camera Camera)
+    (cmpt+ playback-camera AudioListener)
+    (cmpt+ playback-camera GUILayer)
     (doseq [frame frames]
       (doseq [object (keys frame)]
         (disable-physics object)))
@@ -96,12 +106,22 @@
              (if (> (int @f) last-frame)
                (destroy playback-object)
                (seek record @f))
-             (vswap! f + speed)))))
-
-(import ArrayType)
+             (vswap! f + speed)))
+    (set! (.text gui)
+          (str (int (* 100 (/ (count (remove #(.enabled %) (objects-typed Animator)))
+                              (count (objects-typed Animator))))) "%"))
+    (hook+ playback-camera
+           :update
+           (fn [go]
+             (when (Input/GetKeyDown "space")
+               (require 'game.replay :reload)
+               (require 'game.player :reload)
+               (Application/LoadLevel "Title"))
+             (when (< (.fontSize gui) 500)
+               (set! (.fontSize gui)
+                     (int (inc (.fontSize gui)))))))))
 
 (comment
-  (require 'game.replay :reload)
   (require 'game.replay :reload)
   (arcadia.compiler/aot-namespace "." 'arcadia.literals)
   arcadia.literals/parse-$ArrayType=4

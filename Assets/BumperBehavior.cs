@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using clojure.lang;
 
 public class BumperBehavior : MonoBehaviour {
 
@@ -38,6 +39,7 @@ public class BumperBehavior : MonoBehaviour {
 
 	void OnCollisionEnter(Collision collision) {
 		if (collision.gameObject.tag == "Punchable") {
+			RT.var("game.replay", "register-moment").invoke(collision.gameObject.transform.position	);
 			Vector3 frc = CalculateForce (collision);
 			Vector3 me = CalculateMyReaction ();
 			collision.rigidbody.AddForce (frc);

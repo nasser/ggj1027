@@ -113,8 +113,7 @@
 
 (comment
   (doseq [dude Selection/objects]
-    (-> dude
-        (ragmap simple)
+    (-> dude(ragmap simple)
         ragdoll!))
   
   (UnityEngine.Application/LoadLevel (UnityEngine.Application/loadedLevel))

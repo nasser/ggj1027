@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using clojure.lang;
 
 public class PersonController : MonoBehaviour {
 
@@ -37,7 +38,8 @@ public class PersonController : MonoBehaviour {
 	}
 
 	void OnCollisionEnter(Collision collision) {
-
+		// (replay/register-moment (.. other transform position))
+		RT.var("game.replay", "register-moment").invoke(transform.position);
 		if (collision.transform.root.tag == "Punchable" && fps.GetComponent<PlayerController>().hasHit) {
 			if (collision.transform.root.GetComponent<PersonController> ().hasBeenHit == false) {
 				collision.rigidbody.AddForce (gameObject.GetComponent<Rigidbody> ().velocity * 10);
