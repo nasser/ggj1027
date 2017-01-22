@@ -16,8 +16,8 @@
                         0.5)))))
 
 (defn punch-nazis [player]
-  (windup-effect (Input/GetKey "return"))
-  (when (Input/GetKeyUp "return")
+  (windup-effect (Input/GetKey "f"))
+  (when (Input/GetKeyUp "f")
     (let [colliders (Physics/OverlapSphere
                       (.. player transform position)
                       10)

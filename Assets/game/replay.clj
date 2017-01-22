@@ -6,6 +6,14 @@
             Rigidbody Collider Time Joint
             Vector3 Quaternion]))
 
+(def moments-of-interest (atom {}))
+
+(defn register-moment [^Vector3 position]
+  (swap! moments-of-interest update Time/frameCount conj position))
+
+(defn reset-moments []
+  (reset! moments-of-interest {}))
+
 (def recording (Snapshots.))
 
 (defn snapshot [^GameObject obj ^Snapshots record initial-frame]
@@ -22,10 +30,18 @@
   (doseq [child (children obj)]
     (start-recording child record)))
 
+(defn start-recording-all [record]
+  (doseq [r (objects-tagged "Record Me")]
+    (start-recording r record)))
+
 (defn stop-recording [obj]
   (hook- obj :late-update ::replay)
   (doseq [child (children obj)]
     (stop-recording child)))
+
+(defn stop-recording-all []
+  (doseq [r (objects-tagged "Record Me")]
+    (stop-recording r)))
 
 (defn digest [record]
   (persistent!
@@ -82,24 +98,24 @@
                (seek record @f))
              (vswap! f + speed)))))
 
+(import ArrayType)
+
 (comment
   (require 'game.replay :reload)
-  (doseq [a (objects-typed UnityEngine.Animator)]
-    (start-recording a recording))
-  (doseq [a (objects-typed UnityEngine.Animator)]
-    (stop-recording a))
-  
+  (require 'game.replay :reload)
+  (arcadia.compiler/aot-namespace "." 'arcadia.literals)
+  arcadia.literals/parse-$ArrayType=4
+  (start-recording-all recording)
+  (stop-recording-all)
   (def recording* (digest recording))
   
-  (take 1 recording*)
-  
-  (def recording* (digest recording))
-  
+  (count recording*)
+    
   (time (take 3 (group-by #(.time %) (.snapshots recording))))
   
   (count (.snapshots recording))
   (seek% recording* 0.2)
-  (playback! recording* 0.01)
+  (playback! recording* 0.5)
   
   (doseq [cube (objects-named #".*Cube.*")]
     (start-recording cube recording)
