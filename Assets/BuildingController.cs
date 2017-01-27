@@ -16,7 +16,7 @@ public class BuildingController : MonoBehaviour {
 
 	void OnCollisionEnter(Collision collision) {
 
-		if (collision.transform.root.tag == "Punchable" && fps.GetComponent<PlayerController>().hasHit) {
+		if (collision.transform.root.tag == "Record Me" && fps.GetComponent<PlayerController>().hasHit) {
 //			if (collision.transform.root.GetComponent<PersonController> ().hasBeenHit == false) {
 				Vector3 me = collision.rigidbody.velocity;
 			Debug.Log ("hit!");

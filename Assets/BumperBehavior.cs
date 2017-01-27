@@ -38,8 +38,8 @@ public class BumperBehavior : MonoBehaviour {
 	}
 
 	void OnCollisionEnter(Collision collision) {
-		if (collision.gameObject.tag == "Punchable") {
-			RT.var("game.replay", "register-moment").invoke(collision.gameObject.transform.position	);
+		if (collision.gameObject.tag == "Record Me") {
+			// RT.var("game.replay", "register-moment").invoke(collision.gameObject.transform.position	);
 			Vector3 frc = CalculateForce (collision);
 			Vector3 me = CalculateMyReaction ();
 			collision.rigidbody.AddForce (frc);
@@ -61,7 +61,7 @@ public class BumperBehavior : MonoBehaviour {
 	}
 
 	Vector3 CalculateForce(Collision collision) {
-		if (!thud.isPlaying) {
+		if (thud != null && !thud.isPlaying) {
 			thud.Play ();
 		}
 		if (dir == "up") {

@@ -1,8 +1,10 @@
 (ns game.replay
   (:use arcadia.core
         arcadia.linear)
-  (:import Snapshots Snapshot
-           [UnityEngine Application GUILayer GUIText Animator AudioListener GameObject
+  (:import Snapshots Snapshot PlayerController
+           [UnityStandardAssets.Characters.FirstPerson FirstPersonController]
+           [UnityEngine CharacterController
+            Application GUILayer GUIText Animator AudioListener GameObject
             Input Physics Camera Rigidbody Collider Time Joint
             Vector3 Quaternion]))
 
@@ -54,6 +56,10 @@
 
 ;; TODO disable animators
 (defn disable-physics [obj]
+  (when (.. obj (GetComponentInParent Animator))
+    (destroy (.. obj (GetComponentInParent Animator))))
+  (when (.. obj (GetComponent Animator))
+    (destroy (.. obj (GetComponent Animator))))
   (cmpt- obj Joint)
   (cmpt- obj Rigidbody)
   (cmpt- obj Collider))
@@ -82,6 +88,10 @@
 (defn seek% [record pct]
   (seek record (int (* pct (count record)))))
 
+(defn cool-backwards-pan [go]
+  (.. go transform
+      (Translate (v3* (.. go transform right) (* Time/deltaTime -2)))))
+
 (defn playback! [record moi speed]
   (let [playback-camera (GameObject. "playback camera")
         birds-eye (v3 -203.02 16.81 -210.64)
@@ -90,12 +100,21 @@
         first-frame (apply min (keys record))
         last-frame (apply max (keys record))
         f (volatile! (apply min (keys record)))
-        gui (cmpt (object-named "GUI") GUIText)]
-    (.SetActive (object-named "FPSController") false)
+        gui (cmpt (object-named "Percent GUI") GUIText)]
+    ;; (.SetActive (object-named "FPSController") false)
+    (set! (.. (object-named "FPSController") (GetComponent FirstPersonController) enabled) false)
+    (set! (.. (object-named "FPSController") (GetComponent PlayerController) enabled) false)
+    (set! (.. (object-named "FPSController") (GetComponent CharacterController) enabled) false)
+    (set! (.. (object-named "FirstPersonCharacter") (GetComponent Camera) enabled) false)
+    (set! (.. (cmpt (object-named "Timer GUI") GUIText) enabled) false)
     (set! (.. playback-camera transform position) birds-eye)
     (.. playback-camera transform (LookAt (.transform (object-named "road_Roundabout"))))
+    (set! (.. (object-named "Press Space GUI") (GetComponent GUIText) enabled) true)
+    (set! (.text gui)
+          (str (int (* 100 (/ (count (remove #(.enabled %) (objects-typed Animator)))
+                              (count (objects-typed Animator))))) "%"))
     (cmpt+ playback-camera Camera)
-    (cmpt+ playback-camera AudioListener)
+    ; (cmpt+ playback-camera AudioListener)
     (cmpt+ playback-camera GUILayer)
     (doseq [frame frames]
       (doseq [object (keys frame)]
@@ -107,12 +126,10 @@
                (destroy playback-object)
                (seek record @f))
              (vswap! f + speed)))
-    (set! (.text gui)
-          (str (int (* 100 (/ (count (remove #(.enabled %) (objects-typed Animator)))
-                              (count (objects-typed Animator))))) "%"))
     (hook+ playback-camera
            :update
            (fn [go]
+             (cool-backwards-pan go)
              (when (Input/GetKeyDown "space")
                (require 'game.replay :reload)
                (require 'game.player :reload)

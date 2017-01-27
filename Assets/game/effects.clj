@@ -15,7 +15,18 @@
         (set! (.velocity rb) (v3 0)))
       (set! (.isKinematic other-rb) true))))
 
+(defn amplify-collision [go collision]
+  (when-let [this-anim (.GetComponentInParent go Animator)]
+    (when-let [other-anim (.. collision gameObject (GetComponentInParent Animator))]
+      (when-not (.enabled other-anim)
+        (set! (.enabled this-anim) false)))))
+
 (comment
+  (doseq [go (->> (objects-tagged "Record Me")
+                  (mapcat #(.GetComponentsInChildren % Rigidbody))
+                  (map #(.gameObject %)))]
+    (hook+ go :on-collision-enter #'amplify-collision))
+  
   (doseq [win Selection/objects]
     (hook+ win :on-trigger-enter #'sticky)
     )

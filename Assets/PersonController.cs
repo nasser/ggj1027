@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using clojure.lang;
 
@@ -19,34 +19,16 @@ public class PersonController : MonoBehaviour {
 		fps = GameObject.Find("FPSController"); 
 	}
 	
-	// Update is called once per frame
-	void Update () {
-	
-//		float step = speed * Time.deltaTime;
-//		transform.position = Vector3.MoveTowards (transform.position, target, step);
-//
-//		Debug.Log (Vector3.Distance (transform.position, target));
-//
-//		// choose random point within radius
-//		if (Vector3.Distance(transform.position, target) < .5f) {
-//			target = new Vector3 (Random.Range(0, radius), 0, Random.Range(0, radius));
-//		}
-
-		
-
-
-	}
-
 	void OnCollisionEnter(Collision collision) {
-		// (replay/register-moment (.. other transform position))
-		RT.var("game.replay", "register-moment").invoke(transform.position);
-		if (collision.transform.root.tag == "Punchable" && fps.GetComponent<PlayerController>().hasHit) {
-			if (collision.transform.root.GetComponent<PersonController> ().hasBeenHit == false) {
-				collision.rigidbody.AddForce (gameObject.GetComponent<Rigidbody> ().velocity * 10);
-				collision.transform.root.GetComponent<PersonController> ().hasBeenHit = true;
-				collision.transform.root.GetComponent<MeshRenderer> ().material = hitMaterial;
-			}
-
+		if (transform.root != collision.transform.root && collision.transform.root.tag == "Record Me") {
+			// if(GetComponent<Animator>() != null)
+				// GetComponent<Animator>().enabled = false;
+			// Debug.Log(gameObject.name + " collided " + collision.gameObject.name + " tag " + collision.gameObject.tag + " root tag " + collision.transform.root.tag);
+			// Debug.Log(gameObject.name + " collided " + collision.gameObject.name);
+			// GetComponent<Rigidbody>().AddForce (collision.relativeVelocity * 1000);
+			// collision.rigidbody.AddForce (collision.relativeVelocity * 1000);
+			// collision.transform.root.GetComponent<PersonController> ().hasBeenHit = true;
+			// Destroy(GetComponent<BoxCollider>());
 		}
 
 	}

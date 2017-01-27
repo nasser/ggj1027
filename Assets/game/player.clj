@@ -14,24 +14,26 @@
       (.Stop as))))
 
 (defn windup-effect [wind-up]
-  (if wind-up
-    (set! (.fov Camera/main)
-          (float (+ (.fov Camera/main) 0.5)))
-    (if (> (.fov Camera/main) 60.0)
+  (when Camera/main
+    (if wind-up
       (set! (.fov Camera/main)
-            (Mathf/Lerp (.fov Camera/main)
-                        60.0
-                        0.5)))))
+            (float (+ (.fov Camera/main) 0.5)))
+      (if (> (.fov Camera/main) 60.0)
+        (set! (.fov Camera/main)
+              (Mathf/Lerp (.fov Camera/main)
+                          60.0
+                          0.5))))))
 
 (def player-state (atom {:started-timer false
                          :timer 15}))
 
 (defn render-gui [player]
   (when (:started-timer @player-state)
-    (set! (.text (cmpt (object-named "GUI") GUIText))
-          (str (int (:timer @player-state)) "s\n"
-               (int (* 100 (/ (count (remove #(.enabled %) (objects-typed Animator)))
-                              (count (objects-typed Animator))))) "%"))
+    (set! (.text (cmpt (object-named "Timer GUI") GUIText))
+          (str (int (:timer @player-state)) "s"))
+    (set! (.text (cmpt (object-named "Percent GUI") GUIText))
+          (str "\n" (int (* 100 (/ (count (remove #(.enabled %) (objects-typed Animator)))
+                                   (count (objects-typed Animator))))) "%"))
     (swap! player-state update :timer - Time/deltaTime)
     (when (<= (:timer @player-state) 0)
       (swap! player-state assoc :started-timer false)
