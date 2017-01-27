@@ -16,7 +16,7 @@ public class SwitchScenes : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		if (Input.GetKeyDown (triggerKey)) {
-			UnityEditor.SceneManagement.EditorSceneManager.LoadScene (nextScene);
+			Application.LoadLevel (nextScene);
 		}
 	}
 }
